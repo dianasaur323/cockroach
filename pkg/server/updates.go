@@ -25,6 +25,7 @@ import (
 	"reflect"
 	"strconv"
 	"time"
+	"strings"
 
 	"github.com/mitchellh/reflectwalk"
 	"github.com/pkg/errors"
@@ -35,6 +36,7 @@ import (
 	"github.com/cockroachdb/cockroach/pkg/roachpb"
 	"github.com/cockroachdb/cockroach/pkg/server/diagnosticspb"
 	"github.com/cockroachdb/cockroach/pkg/settings"
+	"github.com/cockroachdb/cockroach/pkg/sql"
 	"github.com/cockroachdb/cockroach/pkg/sql/sqlbase"
 	"github.com/cockroachdb/cockroach/pkg/util/envutil"
 	"github.com/cockroachdb/cockroach/pkg/util/log"
@@ -225,7 +227,7 @@ func (s *Server) maybeReportDiagnostics(
 	// TODO(dt): we should allow tuning the reset and report intervals separately.
 	// Consider something like rand.Float() > resetFreq/reportFreq here to sample
 	// stat reset periods for reporting.
-	if log.DiagnosticsReportingEnabled.Get(&s.st.SV) && diagnosticsMetricsEnabled.Get(&s.st.SV) {
+	if log.DiagnosticsReportingEnabled.Get(&s.st.SV) && diagnosticsMetricsEnabled.Get(&s.st.SV) && !strings.Contains(sql.ClusterOrganization.Get(&s.st.SV),"Cockroach Labs"){
 		s.reportDiagnostics(running)
 	}
 	s.sqlExecutor.ResetStatementStats(ctx)
